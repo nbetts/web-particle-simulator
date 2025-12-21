@@ -99,8 +99,7 @@ function main() {
       return { x: pos.x, y: pos.y, radius: particleSize, color };
     });
     drawCircles(webgl, circles, width, height);
-    // FPS counter
-    updateFpsCounter(1 / 60); // Approximate dt for now, or pass actual dt if available
+    // FPS counter will be updated in step() with real dt
   }
 
   // Decoupled simulation time
@@ -113,8 +112,10 @@ function main() {
       const energy = Math.pow(5, (particleEnergy - 50) / 25);
       dt *= energy;
       // --- Soft repulsion ---
-      const neighbors = getParticleNeighbors(particles, repulsionRadius, width, height);
-      applySoftRepulsion(particles, neighbors, repulsionRadius, repulsionSpring);
+      // Repulsion radius is now a multiplier of particle size
+      const absRepulsionRadius = repulsionRadius * particleSize;
+      const neighbors = getParticleNeighbors(particles, absRepulsionRadius, width, height);
+      applySoftRepulsion(particles, neighbors, absRepulsionRadius, repulsionSpring);
       // Step simulation in fixed increments for stability
       let simSteps = Math.floor(dt / TIME_STEP);
       let simRemainder = dt % TIME_STEP;
@@ -126,6 +127,7 @@ function main() {
       }
     }
     render();
+    updateFpsCounter(dt);
     requestAnimationFrame(step);
   }
 

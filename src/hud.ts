@@ -3,7 +3,7 @@ export type HUDSettings = {
   particleCount: number;
   particleEnergy: number;
   particleSize: number;
-  repulsionRadius: number;
+  repulsionRadius: number; // now a multiplier (e.g. 1.0 = 1x particle size)
   repulsionSpring: number;
 };
 
@@ -12,7 +12,7 @@ const DEFAULTS: HUDSettings = {
   particleCount: 250,
   particleEnergy: 50,
   particleSize: 10,
-  repulsionRadius: 40,
+  repulsionRadius: 5.0,
   repulsionSpring: 1.0,
 };
 
@@ -61,7 +61,7 @@ export function setupHUD(
   particleEnergySlider.value = settings.particleEnergy.toString();
   particleEnergyValue.textContent = settings.particleEnergy.toString();
   repulsionRadiusSlider.value = settings.repulsionRadius.toString();
-  repulsionRadiusValue.textContent = settings.repulsionRadius.toString();
+  repulsionRadiusValue.textContent = settings.repulsionRadius.toFixed(1);
   repulsionSpringSlider.value = settings.repulsionSpring.toString();
   repulsionSpringValue.textContent = settings.repulsionSpring.toFixed(1);
 
@@ -90,8 +90,8 @@ export function setupHUD(
     onTimeSpeed(settings.particleEnergy);
   };
   repulsionRadiusSlider.oninput = () => {
-    settings.repulsionRadius = parseInt(repulsionRadiusSlider.value, 10);
-    repulsionRadiusValue.textContent = settings.repulsionRadius.toString();
+    settings.repulsionRadius = parseFloat(repulsionRadiusSlider.value);
+    repulsionRadiusValue.textContent = settings.repulsionRadius.toFixed(1);
     saveSettings(settings);
     onRepulsionRadius(settings.repulsionRadius);
   };
@@ -111,7 +111,7 @@ export function setupHUD(
     particleEnergySlider.value = settings.particleEnergy.toString();
     particleEnergyValue.textContent = settings.particleEnergy.toString();
     repulsionRadiusSlider.value = settings.repulsionRadius.toString();
-    repulsionRadiusValue.textContent = settings.repulsionRadius.toString();
+    repulsionRadiusValue.textContent = settings.repulsionRadius.toFixed(1);
     repulsionSpringSlider.value = settings.repulsionSpring.toString();
     repulsionSpringValue.textContent = settings.repulsionSpring.toFixed(1);
     saveSettings(settings);
