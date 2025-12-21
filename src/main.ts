@@ -15,7 +15,6 @@ function main() {
   let settings: HUDSettings = loadSettings();
   let paused = settings.paused;
   let particleCount = settings.particleCount;
-  let particleEnergy = settings.particleEnergy;
   let particleSize = settings.particleSize;
   let repulsionRadius = settings.repulsionRadius;
   let repulsionSpring = settings.repulsionSpring;
@@ -45,19 +44,6 @@ function main() {
         }
       }
     },
-      (energy) => {
-        // Compute new energy factor
-        const oldEnergy = particleEnergy;
-        particleEnergy = energy;
-        // Map slider value to energy factor (same as in step)
-        const oldFactor = Math.pow(5, (oldEnergy - 50) / 25);
-        const newFactor = Math.pow(5, (particleEnergy - 50) / 25);
-        // Scale velocities so that kinetic energy matches new energy
-        if (oldFactor > 0) {
-          const scale = newFactor / oldFactor;
-          scaleParticleVelocities(particles, scale);
-        }
-      },
     (size) => {
       particleSize = size;
       setParticleRadius(particles, particleSize);
@@ -67,7 +53,6 @@ function main() {
     () => {
       paused = DEFAULTS.paused;
       particleCount = DEFAULTS.particleCount;
-      particleEnergy = DEFAULTS.particleEnergy;
       particleSize = DEFAULTS.particleSize;
       repulsionRadius = DEFAULTS.repulsionRadius;
       repulsionSpring = DEFAULTS.repulsionSpring;
@@ -89,10 +74,8 @@ function main() {
     height = canvas.height;
     // Use a fixed world speed range for color mapping
     const minSpeed = 0;
-    const maxSpeed = 500; // Adjust as needed for your simulation's expected max speed
-    // Map slider value to energy factor (same as in step)
-    const energyFactor = Math.pow(5, (particleEnergy - 50) / 25);
-    const colors = getParticleColors(particles, minSpeed, maxSpeed, energyFactor);
+    const maxSpeed = 1000; // Adjust as needed for your simulation's expected max speed
+      const colors = getParticleColors(particles, minSpeed, maxSpeed, 1);
     const circles = particles.map((body, i) => {
       const pos = body.getPosition();
       const color = colors[i];
@@ -107,10 +90,9 @@ function main() {
   function step() {
     const now = performance.now();
     let dt = (now - lastSimTime) / 1000;
+    let frameDt = dt;
     lastSimTime = now;
     if (!paused) {
-      const energy = Math.pow(5, (particleEnergy - 50) / 25);
-      dt *= energy;
       // --- Soft repulsion ---
       // Repulsion radius is now a multiplier of particle size
       const absRepulsionRadius = repulsionRadius * particleSize;
@@ -127,7 +109,7 @@ function main() {
       }
     }
     render();
-    updateFpsCounter(dt);
+    updateFpsCounter(frameDt);
     requestAnimationFrame(step);
   }
 

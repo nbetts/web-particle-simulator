@@ -145,16 +145,21 @@ function lerp(a: number, b: number, t: number) {
   return a + (b - a) * t;
 }
 
+// Physically-inspired: blue (cold) → red → yellow → white (hot)
 export function speedToColor(speed: number, minSpeed: number, maxSpeed: number): [number, number, number] {
   // Normalize speed to [0, 1]
   const t = Math.max(0, Math.min(1, (speed - minSpeed) / (maxSpeed - minSpeed)));
-  if (t < 0.5) {
-    // Blue (0,0,1) to Orange (1,0.5,0)
-    const tt = t / 0.5;
+  if (t < 0.25) {
+    // Blue (0,0,1) to Red (1,0,0)
+    const tt = t / 0.25;
     return [lerp(0, 1, tt), lerp(0, 0.5, tt), lerp(1, 0, tt)];
-  } else {
-    // Orange (1,0.5,0) to Yellow (1,1,0)
-    const tt = (t - 0.5) / 0.5;
+  } else if (t < 0.6) {
+    // Red (1,0,0) to Yellow (1,1,0)
+    const tt = (t - 0.25) / (0.6 - 0.25);
     return [1, lerp(0.5, 1, tt), 0];
+  } else {
+    // Yellow (1,1,0) to White (1,1,1)
+    const tt = (t - 0.6) / (1 - 0.6);
+    return [1, 1, lerp(0, 1, tt)];
   }
 }

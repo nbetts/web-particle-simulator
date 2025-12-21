@@ -1,7 +1,6 @@
 export type HUDSettings = {
   paused: boolean;
   particleCount: number;
-  particleEnergy: number;
   particleSize: number;
   repulsionRadius: number; // now a multiplier (e.g. 1.0 = 1x particle size)
   repulsionSpring: number;
@@ -10,7 +9,6 @@ export type HUDSettings = {
 const DEFAULTS: HUDSettings = {
   paused: false,
   particleCount: 250,
-  particleEnergy: 50,
   particleSize: 10,
   repulsionRadius: 5.0,
   repulsionSpring: 1.0,
@@ -33,7 +31,6 @@ export function saveSettings(settings: HUDSettings) {
 export function setupHUD(
   onPause: (paused: boolean) => void,
   onParticleCount: (count: number) => void,
-  onTimeSpeed: (speed: number) => void,
   onParticleSize: (size: number) => void,
   onRepulsionRadius: (radius: number) => void,
   onRepulsionSpring: (spring: number) => void,
@@ -45,8 +42,6 @@ export function setupHUD(
   const particleCountValue = document.getElementById('particleCountValue') as HTMLSpanElement;
   const particleSizeSlider = document.getElementById('particleSize') as HTMLInputElement;
   const particleSizeValue = document.getElementById('particleSizeValue') as HTMLSpanElement;
-  const particleEnergySlider = document.getElementById('particleEnergy') as HTMLInputElement;
-  const particleEnergyValue = document.getElementById('particleEnergyValue') as HTMLSpanElement;
   const repulsionRadiusSlider = document.getElementById('repulsionRadius') as HTMLInputElement;
   const repulsionRadiusValue = document.getElementById('repulsionRadiusValue') as HTMLSpanElement;
   const repulsionSpringSlider = document.getElementById('repulsionSpring') as HTMLInputElement;
@@ -58,8 +53,6 @@ export function setupHUD(
   particleCountValue.textContent = settings.particleCount.toString();
   particleSizeSlider.value = settings.particleSize.toString();
   particleSizeValue.textContent = settings.particleSize.toString();
-  particleEnergySlider.value = settings.particleEnergy.toString();
-  particleEnergyValue.textContent = settings.particleEnergy.toString();
   repulsionRadiusSlider.value = settings.repulsionRadius.toString();
   repulsionRadiusValue.textContent = settings.repulsionRadius.toFixed(1);
   repulsionSpringSlider.value = settings.repulsionSpring.toString();
@@ -83,12 +76,6 @@ export function setupHUD(
     saveSettings(settings);
     onParticleSize(settings.particleSize);
   };
-  particleEnergySlider.oninput = () => {
-    settings.particleEnergy = parseInt(particleEnergySlider.value, 10);
-    particleEnergyValue.textContent = settings.particleEnergy.toString();
-    saveSettings(settings);
-    onTimeSpeed(settings.particleEnergy);
-  };
   repulsionRadiusSlider.oninput = () => {
     settings.repulsionRadius = parseFloat(repulsionRadiusSlider.value);
     repulsionRadiusValue.textContent = settings.repulsionRadius.toFixed(1);
@@ -108,8 +95,6 @@ export function setupHUD(
     particleCountValue.textContent = settings.particleCount.toString();
     particleSizeSlider.value = settings.particleSize.toString();
     particleSizeValue.textContent = settings.particleSize.toString();
-    particleEnergySlider.value = settings.particleEnergy.toString();
-    particleEnergyValue.textContent = settings.particleEnergy.toString();
     repulsionRadiusSlider.value = settings.repulsionRadius.toString();
     repulsionRadiusValue.textContent = settings.repulsionRadius.toFixed(1);
     repulsionSpringSlider.value = settings.repulsionSpring.toString();
