@@ -2,9 +2,9 @@ import { TIME_STEP } from './constants';
 import { createWorld, createBoundaries, stepWorld } from './physics';
 import { createParticles, setParticleRadius, getParticleNeighbors, applySoftRepulsion, getParticleEnergies, getParticleColorsByEnergy } from './particles';
 import { resizeCanvasToDisplaySize } from './window';
-import { vsSource, fsSource } from './shaders';
+import { particleVertexShader, particleFragmentShaders } from './shaders';
 import { initWebGL, drawCircles } from './webgl';
-import { type HUDSettings, loadSettings, setupHUD, DEFAULTS, updateFpsCounter } from './hud';
+import { type HUDSettings, loadSettings, setupHUD, updateFpsCounter } from './hud';
 
 function main() {
   const canvas = document.getElementById('glcanvas') as HTMLCanvasElement;
@@ -18,9 +18,10 @@ function main() {
   let particleSize = settings.particleSize;
   let repulsionRadius = settings.repulsionRadius;
   let repulsionSpring = settings.repulsionSpring;
+  let shader = particleFragmentShaders[settings.shader];
 
   // WebGL setup
-  const webgl = initWebGL(canvas, vsSource, fsSource);
+  let webgl = initWebGL(canvas, particleVertexShader, shader);
 
   // Planck.js world
   let world = createWorld();
@@ -55,10 +56,11 @@ function main() {
       for (let i = particles.length - 1; i >= 0; --i) world.destroyBody(particles[i]);
       particles = createParticles(world, width, height, particleCount, particleSize);
     },
+    (shader) => {
+      webgl = initWebGL(canvas, particleVertexShader, particleFragmentShaders[shader]);
+    },
     settings
   );
-
-  // FPS counter handled in hud.ts
 
   function render() {
     resizeCanvasToDisplaySize(canvas);

@@ -4,14 +4,16 @@ export type HUDSettings = {
   particleSize: number;
   repulsionRadius: number; // now a multiplier (e.g. 1.0 = 1x particle size)
   repulsionSpring: number;
+  shader: string;
 };
 
 const DEFAULTS: HUDSettings = {
   paused: false,
   particleCount: 250,
   particleSize: 10,
-  repulsionRadius: 5.0,
+  repulsionRadius: 3.0,
   repulsionSpring: 1.0,
+  shader: 'Basic',
 };
 
 export function loadSettings(): HUDSettings {
@@ -35,6 +37,7 @@ export function setupHUD(
   onRepulsionRadius: (radius: number) => void,
   onRepulsionSpring: (spring: number) => void,
   onReset: () => void,
+  onShader: (shader: string) => void,
   settings: HUDSettings
 ) {
   const pauseBtn = document.getElementById('pauseBtn') as HTMLButtonElement;
@@ -46,13 +49,8 @@ export function setupHUD(
   const repulsionRadiusValue = document.getElementById('repulsionRadiusValue') as HTMLSpanElement;
   const repulsionSpringSlider = document.getElementById('repulsionSpring') as HTMLInputElement;
   const repulsionSpringValue = document.getElementById('repulsionSpringValue') as HTMLSpanElement;
+  const shaderSelect = document.getElementById('shaderSelect') as HTMLSelectElement;
   const resetBtn = document.getElementById('resetBtn') as HTMLButtonElement;
-  const randomiseBtn = document.getElementById('randomiseBtn') as HTMLButtonElement;
-  if (randomiseBtn) {
-    randomiseBtn.onclick = () => {
-      onReset(); // We'll use the onReset callback in main.ts to randomise particles
-    };
-  }
 
   pauseBtn.textContent = settings.paused ? 'Resume' : 'Pause';
   particleCountSlider.value = settings.particleCount.toString();
@@ -63,6 +61,7 @@ export function setupHUD(
   repulsionRadiusValue.textContent = settings.repulsionRadius.toFixed(1);
   repulsionSpringSlider.value = settings.repulsionSpring.toString();
   repulsionSpringValue.textContent = settings.repulsionSpring.toFixed(1);
+  shaderSelect.value = settings.shader;
 
   pauseBtn.onclick = () => {
     settings.paused = !settings.paused;
@@ -94,8 +93,14 @@ export function setupHUD(
     saveSettings(settings);
     onRepulsionSpring(settings.repulsionSpring);
   };
+  shaderSelect.oninput = () => {
+    settings.shader = shaderSelect.value;
+    shaderSelect.value = settings.shader;
+    saveSettings(settings);
+    onShader(settings.shader);
+  };
   resetBtn.onclick = () => {
-    Object.assign(settings, DEFAULTS);
+    settings = structuredClone(DEFAULTS);
     pauseBtn.textContent = settings.paused ? 'Resume' : 'Pause';
     particleCountSlider.value = settings.particleCount.toString();
     particleCountValue.textContent = settings.particleCount.toString();
@@ -106,6 +111,11 @@ export function setupHUD(
     repulsionSpringSlider.value = settings.repulsionSpring.toString();
     repulsionSpringValue.textContent = settings.repulsionSpring.toFixed(1);
     saveSettings(settings);
+    onParticleCount(settings.particleCount);
+    onParticleSize(settings.particleSize);
+    onRepulsionRadius(settings.repulsionRadius);
+    onRepulsionSpring(settings.repulsionSpring);
+    onShader(settings.shader);
     onReset();
   };
 }

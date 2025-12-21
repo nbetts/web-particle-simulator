@@ -12,6 +12,9 @@ export type WebGLCircleProgram = {
 
 export function initWebGL(canvas: HTMLCanvasElement, vsSource: string, fsSource: string): WebGLCircleProgram {
   const gl = canvas.getContext('webgl')!;
+  // Enable alpha blending for transparent shaders
+  gl.enable(gl.BLEND);
+  gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
   function loadShader(type: number, source: string): WebGLShader {
     const shader = gl.createShader(type)!;
     gl.shaderSource(shader, source);
