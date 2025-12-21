@@ -5,26 +5,52 @@ export function scaleParticleVelocities(particles: planck.Body[], factor: number
     body.setLinearVelocity(planck.Vec2(v.x * factor, v.y * factor));
   }
 }
-// Get color for each particle based on absolute speed and a fixed world speed range
-// Color by on-screen speed (velocity × energy factor)
-export function getParticleColors(
+// Compute total energy (kinetic + potential) for each particle
+export function getParticleEnergies(
   particles: planck.Body[],
-  minSpeed: number,
-  maxSpeed: number,
-  energyFactor: number = 1
+  neighbors: number[][],
+  repulsionRadius: number,
+  repulsionSpring: number
+): number[] {
+  const energies: number[] = [];
+  for (let i = 0; i < particles.length; ++i) {
+    // Kinetic energy: 0.5 * v^2 (m=1)
+    const v = particles[i].getLinearVelocity();
+    let ke = 0.5 * (v.x * v.x + v.y * v.y);
+    // Potential energy: sum 0.5 * k * overlap^2 for all overlapping neighbors
+    let pe = 0;
+    const posA = particles[i].getPosition();
+    for (const j of neighbors[i]) {
+      if (j <= i) continue; // avoid double-counting
+      const posB = particles[j].getPosition();
+      const dx = posB.x - posA.x;
+      const dy = posB.y - posA.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const minDist = repulsionRadius * 2;
+      if (dist < minDist && dist > 0.0001) {
+        const overlap = minDist - dist;
+        pe += 0.5 * repulsionSpring * overlap * overlap;
+      }
+    }
+    energies.push(ke + pe);
+  }
+  return energies;
+}
+
+// Get color for each particle based on total energy
+export function getParticleColorsByEnergy(
+  energies: number[],
+  minEnergy: number,
+  maxEnergy: number
 ): [number, number, number][] {
-  return particles.map(body => {
-    const v = body.getLinearVelocity();
-    const speed = Math.sqrt(v.x * v.x + v.y * v.y) * energyFactor;
-    return speedToColor(speed, minSpeed, maxSpeed);
-  });
+  return energies.map(e => speedToColor(e, minEnergy, maxEnergy));
 }
 // Apply soft repulsion between overlapping particles
 export function applySoftRepulsion(
   particles: planck.Body[],
   neighbors: number[][],
   radius: number,
-  k: number = 1000 // spring constant for repulsion
+  k: number // spring constant for repulsion
 ) {
   for (let i = 0; i < particles.length; ++i) {
     const a = particles[i];

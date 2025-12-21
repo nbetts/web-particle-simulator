@@ -1,6 +1,6 @@
 import { TIME_STEP } from './constants';
 import { createWorld, createBoundaries, stepWorld } from './physics';
-import { createParticles, setParticleRadius, getParticleNeighbors, getParticleColors, applySoftRepulsion, scaleParticleVelocities } from './particles';
+import { createParticles, setParticleRadius, getParticleNeighbors, applySoftRepulsion, getParticleEnergies, getParticleColorsByEnergy } from './particles';
 import { resizeCanvasToDisplaySize } from './window';
 import { vsSource, fsSource } from './shaders';
 import { initWebGL, drawCircles } from './webgl';
@@ -51,17 +51,9 @@ function main() {
     (radius) => { repulsionRadius = radius; },
     (spring) => { repulsionSpring = spring; },
     () => {
-      paused = DEFAULTS.paused;
-      particleCount = DEFAULTS.particleCount;
-      particleSize = DEFAULTS.particleSize;
-      repulsionRadius = DEFAULTS.repulsionRadius;
-      repulsionSpring = DEFAULTS.repulsionSpring;
-      if (particles.length !== particleCount) {
-        for (let i = particles.length - 1; i >= 0; --i) world.destroyBody(particles[i]);
-        particles = createParticles(world, width, height, particleCount, particleSize);
-      } else {
-        setParticleRadius(particles, particleSize);
-      }
+      // Randomise all particles: destroy and recreate
+      for (let i = particles.length - 1; i >= 0; --i) world.destroyBody(particles[i]);
+      particles = createParticles(world, width, height, particleCount, particleSize);
     },
     settings
   );
@@ -72,17 +64,21 @@ function main() {
     resizeCanvasToDisplaySize(canvas);
     width = canvas.width;
     height = canvas.height;
-    // Use a fixed world speed range for color mapping
-    const minSpeed = 0;
-    const maxSpeed = 1000; // Adjust as needed for your simulation's expected max speed
-      const colors = getParticleColors(particles, minSpeed, maxSpeed, 1);
+    // Compute neighbors for energy calculation
+    const absRepulsionRadius = repulsionRadius * particleSize;
+    const neighbors = getParticleNeighbors(particles, absRepulsionRadius, width, height);
+    // Compute total energy (kinetic + potential) for each particle
+    const energies = getParticleEnergies(particles, neighbors, absRepulsionRadius, repulsionSpring);
+    // Use a fixed energy range for color mapping
+    const minEnergy = 0;
+    const maxEnergy = 100000; // Adjust as needed for your simulation's expected max energy
+    const colors = getParticleColorsByEnergy(energies, minEnergy, maxEnergy);
     const circles = particles.map((body, i) => {
       const pos = body.getPosition();
       const color = colors[i];
       return { x: pos.x, y: pos.y, radius: particleSize, color };
     });
     drawCircles(webgl, circles, width, height);
-    // FPS counter will be updated in step() with real dt
   }
 
   // Decoupled simulation time

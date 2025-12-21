@@ -47,6 +47,12 @@ export function setupHUD(
   const repulsionSpringSlider = document.getElementById('repulsionSpring') as HTMLInputElement;
   const repulsionSpringValue = document.getElementById('repulsionSpringValue') as HTMLSpanElement;
   const resetBtn = document.getElementById('resetBtn') as HTMLButtonElement;
+  const randomiseBtn = document.getElementById('randomiseBtn') as HTMLButtonElement;
+  if (randomiseBtn) {
+    randomiseBtn.onclick = () => {
+      onReset(); // We'll use the onReset callback in main.ts to randomise particles
+    };
+  }
 
   pauseBtn.textContent = settings.paused ? 'Resume' : 'Pause';
   particleCountSlider.value = settings.particleCount.toString();
