@@ -1,15 +1,19 @@
 export type HUDSettings = {
   paused: boolean;
   particleCount: number;
-  timeSpeed: number;
+  particleEnergy: number;
   particleSize: number;
+  repulsionRadius: number;
+  repulsionSpring: number;
 };
 
 const DEFAULTS: HUDSettings = {
   paused: false,
-  particleCount: 100,
-  timeSpeed: 50,
+  particleCount: 250,
+  particleEnergy: 50,
   particleSize: 10,
+  repulsionRadius: 40,
+  repulsionSpring: 1.0,
 };
 
 export function loadSettings(): HUDSettings {
@@ -31,6 +35,8 @@ export function setupHUD(
   onParticleCount: (count: number) => void,
   onTimeSpeed: (speed: number) => void,
   onParticleSize: (size: number) => void,
+  onRepulsionRadius: (radius: number) => void,
+  onRepulsionSpring: (spring: number) => void,
   onReset: () => void,
   settings: HUDSettings
 ) {
@@ -39,8 +45,12 @@ export function setupHUD(
   const particleCountValue = document.getElementById('particleCountValue') as HTMLSpanElement;
   const particleSizeSlider = document.getElementById('particleSize') as HTMLInputElement;
   const particleSizeValue = document.getElementById('particleSizeValue') as HTMLSpanElement;
-  const timeSpeedSlider = document.getElementById('timeSpeed') as HTMLInputElement;
-  const timeSpeedValue = document.getElementById('timeSpeedValue') as HTMLSpanElement;
+  const particleEnergySlider = document.getElementById('particleEnergy') as HTMLInputElement;
+  const particleEnergyValue = document.getElementById('particleEnergyValue') as HTMLSpanElement;
+  const repulsionRadiusSlider = document.getElementById('repulsionRadius') as HTMLInputElement;
+  const repulsionRadiusValue = document.getElementById('repulsionRadiusValue') as HTMLSpanElement;
+  const repulsionSpringSlider = document.getElementById('repulsionSpring') as HTMLInputElement;
+  const repulsionSpringValue = document.getElementById('repulsionSpringValue') as HTMLSpanElement;
   const resetBtn = document.getElementById('resetBtn') as HTMLButtonElement;
 
   pauseBtn.textContent = settings.paused ? 'Resume' : 'Pause';
@@ -48,8 +58,12 @@ export function setupHUD(
   particleCountValue.textContent = settings.particleCount.toString();
   particleSizeSlider.value = settings.particleSize.toString();
   particleSizeValue.textContent = settings.particleSize.toString();
-  timeSpeedSlider.value = settings.timeSpeed.toString();
-  timeSpeedValue.textContent = settings.timeSpeed.toString();
+  particleEnergySlider.value = settings.particleEnergy.toString();
+  particleEnergyValue.textContent = settings.particleEnergy.toString();
+  repulsionRadiusSlider.value = settings.repulsionRadius.toString();
+  repulsionRadiusValue.textContent = settings.repulsionRadius.toString();
+  repulsionSpringSlider.value = settings.repulsionSpring.toString();
+  repulsionSpringValue.textContent = settings.repulsionSpring.toFixed(1);
 
   pauseBtn.onclick = () => {
     settings.paused = !settings.paused;
@@ -69,11 +83,23 @@ export function setupHUD(
     saveSettings(settings);
     onParticleSize(settings.particleSize);
   };
-  timeSpeedSlider.oninput = () => {
-    settings.timeSpeed = parseInt(timeSpeedSlider.value, 10);
-    timeSpeedValue.textContent = settings.timeSpeed.toString();
+  particleEnergySlider.oninput = () => {
+    settings.particleEnergy = parseInt(particleEnergySlider.value, 10);
+    particleEnergyValue.textContent = settings.particleEnergy.toString();
     saveSettings(settings);
-    onTimeSpeed(settings.timeSpeed);
+    onTimeSpeed(settings.particleEnergy);
+  };
+  repulsionRadiusSlider.oninput = () => {
+    settings.repulsionRadius = parseInt(repulsionRadiusSlider.value, 10);
+    repulsionRadiusValue.textContent = settings.repulsionRadius.toString();
+    saveSettings(settings);
+    onRepulsionRadius(settings.repulsionRadius);
+  };
+  repulsionSpringSlider.oninput = () => {
+    settings.repulsionSpring = parseFloat(repulsionSpringSlider.value);
+    repulsionSpringValue.textContent = settings.repulsionSpring.toFixed(1);
+    saveSettings(settings);
+    onRepulsionSpring(settings.repulsionSpring);
   };
   resetBtn.onclick = () => {
     Object.assign(settings, DEFAULTS);
@@ -82,8 +108,12 @@ export function setupHUD(
     particleCountValue.textContent = settings.particleCount.toString();
     particleSizeSlider.value = settings.particleSize.toString();
     particleSizeValue.textContent = settings.particleSize.toString();
-    timeSpeedSlider.value = settings.timeSpeed.toString();
-    timeSpeedValue.textContent = settings.timeSpeed.toString();
+    particleEnergySlider.value = settings.particleEnergy.toString();
+    particleEnergyValue.textContent = settings.particleEnergy.toString();
+    repulsionRadiusSlider.value = settings.repulsionRadius.toString();
+    repulsionRadiusValue.textContent = settings.repulsionRadius.toString();
+    repulsionSpringSlider.value = settings.repulsionSpring.toString();
+    repulsionSpringValue.textContent = settings.repulsionSpring.toFixed(1);
     saveSettings(settings);
     onReset();
   };

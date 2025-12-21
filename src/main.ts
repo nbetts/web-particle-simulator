@@ -1,6 +1,6 @@
-import { PARTICLE_RADIUS, TIME_STEP } from './constants';
+import { TIME_STEP } from './constants';
 import { createWorld, createBoundaries, stepWorld } from './physics';
-import { createParticles, getParticleSpeeds, speedToColor, setParticleRadius } from './particles';
+import { createParticles, setParticleRadius, getParticleNeighbors, getParticleColors, applySoftRepulsion, scaleParticleVelocities } from './particles';
 import { resizeCanvasToDisplaySize } from './window';
 import { vsSource, fsSource } from './shaders';
 import { initWebGL, drawCircles } from './webgl';
@@ -15,8 +15,10 @@ function main() {
   let settings: HUDSettings = loadSettings();
   let paused = settings.paused;
   let particleCount = settings.particleCount;
-  let timeSpeed = settings.timeSpeed;
+  let particleEnergy = settings.particleEnergy;
   let particleSize = settings.particleSize;
+  let repulsionRadius = settings.repulsionRadius;
+  let repulsionSpring = settings.repulsionSpring;
 
   // WebGL setup
   const webgl = initWebGL(canvas, vsSource, fsSource);
@@ -43,18 +45,32 @@ function main() {
         }
       }
     },
-    (speed) => { timeSpeed = speed; },
+      (energy) => {
+        // Compute new energy factor
+        const oldEnergy = particleEnergy;
+        particleEnergy = energy;
+        // Map slider value to energy factor (same as in step)
+        const oldFactor = Math.pow(5, (oldEnergy - 50) / 25);
+        const newFactor = Math.pow(5, (particleEnergy - 50) / 25);
+        // Scale velocities so that kinetic energy matches new energy
+        if (oldFactor > 0) {
+          const scale = newFactor / oldFactor;
+          scaleParticleVelocities(particles, scale);
+        }
+      },
     (size) => {
       particleSize = size;
-      // Change the radius of all current particles in-place
       setParticleRadius(particles, particleSize);
     },
+    (radius) => { repulsionRadius = radius; },
+    (spring) => { repulsionSpring = spring; },
     () => {
       paused = DEFAULTS.paused;
       particleCount = DEFAULTS.particleCount;
-      timeSpeed = DEFAULTS.timeSpeed;
+      particleEnergy = DEFAULTS.particleEnergy;
       particleSize = DEFAULTS.particleSize;
-      // Only recreate particles if count changed, otherwise just update radius
+      repulsionRadius = DEFAULTS.repulsionRadius;
+      repulsionSpring = DEFAULTS.repulsionSpring;
       if (particles.length !== particleCount) {
         for (let i = particles.length - 1; i >= 0; --i) world.destroyBody(particles[i]);
         particles = createParticles(world, width, height, particleCount, particleSize);
@@ -71,13 +87,15 @@ function main() {
     resizeCanvasToDisplaySize(canvas);
     width = canvas.width;
     height = canvas.height;
-    // Compute speeds and colors
-    const speeds = getParticleSpeeds(particles);
-    const minSpeed = Math.min(...speeds);
-    const maxSpeed = Math.max(...speeds);
+    // Use a fixed world speed range for color mapping
+    const minSpeed = 0;
+    const maxSpeed = 500; // Adjust as needed for your simulation's expected max speed
+    // Map slider value to energy factor (same as in step)
+    const energyFactor = Math.pow(5, (particleEnergy - 50) / 25);
+    const colors = getParticleColors(particles, minSpeed, maxSpeed, energyFactor);
     const circles = particles.map((body, i) => {
       const pos = body.getPosition();
-      const color = speedToColor(speeds[i], minSpeed, maxSpeed);
+      const color = colors[i];
       return { x: pos.x, y: pos.y, radius: particleSize, color };
     });
     drawCircles(webgl, circles, width, height);
@@ -92,8 +110,11 @@ function main() {
     let dt = (now - lastSimTime) / 1000;
     lastSimTime = now;
     if (!paused) {
-      const speed = Math.pow(5, (timeSpeed - 50) / 25);
-      dt *= speed;
+      const energy = Math.pow(5, (particleEnergy - 50) / 25);
+      dt *= energy;
+      // --- Soft repulsion ---
+      const neighbors = getParticleNeighbors(particles, repulsionRadius, width, height);
+      applySoftRepulsion(particles, neighbors, repulsionRadius, repulsionSpring);
       // Step simulation in fixed increments for stability
       let simSteps = Math.floor(dt / TIME_STEP);
       let simRemainder = dt % TIME_STEP;
