@@ -1,3 +1,4 @@
+// Vertex shader for impostor circle rendering (draws a quad per particle)
 export const particleVertexShader = `
   precision mediump float;
   attribute vec2 aPosition;
@@ -6,8 +7,9 @@ export const particleVertexShader = `
   uniform vec2 uResolution;
   varying vec2 vLocalPos;
   void main() {
-    // vLocalPos in [0,1] for fragment shader
-    vLocalPos = aPosition * 0.5 + 0.5;
+    // aPosition in [-1,1], quad
+    vLocalPos = aPosition;
+    // Scale quad to particle size and move to center
     vec2 pos = uCenter + aPosition * uRadius;
     vec2 clip = (pos / uResolution) * 2.0 - 1.0;
     gl_Position = vec4(clip.x, -clip.y, 0.0, 1.0);
@@ -15,11 +17,17 @@ export const particleVertexShader = `
 `;
 
 export const particleFragmentShaders: { [key: string]: string } = {
-  'Basic': `
+  'Basic':  `
     precision mediump float;
     uniform vec3 uColor;
+    varying vec2 vLocalPos;
+    uniform vec2 uResolution;
+    uniform float uRadius;
     void main() {
-      gl_FragColor = vec4(uColor, 1.0);
+      float dist = length(vLocalPos);
+      float edgeWidth = 1.5 / (uRadius * min(uResolution.x, uResolution.y));
+      float alpha = 1.0 - smoothstep(1.0 - edgeWidth, 1.0 + edgeWidth, dist);
+      gl_FragColor = vec4(uColor, alpha);
     }
   `,
   'Glow': `

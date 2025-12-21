@@ -7,12 +7,10 @@ export type WebGLCircleProgram = {
   uRadius: WebGLUniformLocation;
   uResolution: WebGLUniformLocation;
   uColor: WebGLUniformLocation;
-  circleVerts: Float32Array;
 };
 
 export function initWebGL(canvas: HTMLCanvasElement, vsSource: string, fsSource: string): WebGLCircleProgram {
   const gl = canvas.getContext('webgl')!;
-  // Enable alpha blending for transparent shaders
   gl.enable(gl.BLEND);
   gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
   function loadShader(type: number, source: string): WebGLShader {
@@ -35,19 +33,18 @@ export function initWebGL(canvas: HTMLCanvasElement, vsSource: string, fsSource:
   }
   gl.useProgram(program);
 
-  // Circle geometry
-  function createCircleVertices(radius: number, segments = 32) {
-    const verts = [];
-    for (let i = 0; i <= segments; ++i) {
-      const theta = (i / segments) * 2 * Math.PI;
-      verts.push(Math.cos(theta) * radius, Math.sin(theta) * radius);
-    }
-    return new Float32Array(verts);
-  }
-  const circleVerts = createCircleVertices(1, 32);
+  // Quad geometry for impostor circle: covers [-1,-1] to [1,1]
+  const quadVerts = new Float32Array([
+    -1, -1,
+    1, -1,
+    -1, 1,
+    -1, 1,
+    1, -1,
+    1, 1,
+  ]);
   const vbo = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
-  gl.bufferData(gl.ARRAY_BUFFER, circleVerts, gl.STATIC_DRAW);
+  gl.bufferData(gl.ARRAY_BUFFER, quadVerts, gl.STATIC_DRAW);
 
   const aPosition = gl.getAttribLocation(program, 'aPosition');
   gl.enableVertexAttribArray(aPosition);
@@ -62,7 +59,6 @@ export function initWebGL(canvas: HTMLCanvasElement, vsSource: string, fsSource:
     uRadius: gl.getUniformLocation(program, 'uRadius')!,
     uResolution: gl.getUniformLocation(program, 'uResolution')!,
     uColor: gl.getUniformLocation(program, 'uColor')!,
-    circleVerts,
   };
 }
 
@@ -72,7 +68,7 @@ export function drawCircles(
   width: number,
   height: number
 ) {
-  const { gl, program, uCenter, uRadius, uResolution, uColor, circleVerts } = webgl;
+  const { gl, program, uCenter, uRadius, uResolution, uColor } = webgl;
   gl.viewport(0, 0, width, height);
   gl.clearColor(0, 0, 0, 1);
   gl.clear(gl.COLOR_BUFFER_BIT);
@@ -82,6 +78,7 @@ export function drawCircles(
     gl.uniform2f(uCenter, c.x, c.y);
     gl.uniform1f(uRadius, c.radius);
     gl.uniform3fv(uColor, c.color);
-    gl.drawArrays(gl.TRIANGLE_FAN, 0, circleVerts.length / 2);
+    // Draw the quad (6 vertices)
+    gl.drawArrays(gl.TRIANGLES, 0, 6);
   }
 }
