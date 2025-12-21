@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>particle-simulator</title>
+    <style>
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        width: 100vw;
+        height: 100vh;
+        overflow: hidden;
+      }
+      #glcanvas {
+        display: block;
+        width: 100vw;
+        height: 100vh;
+      }
+      #hud {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 320px;
+        height: 100vh;
+        background: rgba(24, 24, 24, 0.85);
+        color: #fff;
+        font-family: sans-serif;
+        z-index: 10;
+        padding: 24px 20px 20px 20px;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+      }
+      #hud label {
+        display: block;
+        margin-bottom: 8px;
+        font-size: 1rem;
+      }
+      #hud input[type="range"] {
+        width: 100%;
+      }
+      #hud .slider-value {
+        float: right;
+        font-size: 0.95em;
+        color: #aaffaa;
+      }
+      #hud button {
+        font-size: 1.1em;
+        padding: 8px 18px;
+        background: #222;
+        color: #fff;
+        border: 1px solid #444;
+        border-radius: 4px;
+        cursor: pointer;
+        margin-bottom: 8px;
+      }
+      #hud button:active {
+        background: #333;
+      }
+      #fps-counter {
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        background: rgba(0,0,0,0.7);
+        color: #fff;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-family: monospace;
+        font-size: 14px;
+        z-index: 1000;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="glcanvas"></canvas>
+    <div id="hud">
+      <button id="pauseBtn">Pause</button>
+      <div>
+        <label for="particleCount">Particle Count <span class="slider-value" id="particleCountValue">100</span></label>
+        <input type="range" id="particleCount" min="1" max="1000" value="100">
+      </div>
+      <div>
+        <label for="particleSize">Particle Size <span class="slider-value" id="particleSizeValue">5</span></label>
+        <input type="range" id="particleSize" min="1" max="25" value="10">
+      </div>
+      <div>
+        <label for="timeSpeed">Time Speed <span class="slider-value" id="timeSpeedValue">50</span></label>
+        <input type="range" id="timeSpeed" min="1" max="100" value="50">
+      </div>
+      <button id="resetBtn">Reset settings</button>
+    </div>
+    <div id="fps-counter">FPS: 0.0</div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
