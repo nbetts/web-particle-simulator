@@ -38,7 +38,8 @@ export function setupHUD(
   onRepulsionSpring: (spring: number) => void,
   onReset: () => void,
   onShader: (shader: string) => void,
-  settings: HUDSettings
+  settings: HUDSettings,
+  onVelocityScale?: (factor: number) => void
 ) {
   const pauseBtn = document.getElementById('pauseBtn') as HTMLButtonElement;
   const particleCountSlider = document.getElementById('particleCount') as HTMLInputElement;
@@ -51,6 +52,50 @@ export function setupHUD(
   const repulsionSpringValue = document.getElementById('repulsionSpringValue') as HTMLSpanElement;
   const shaderSelect = document.getElementById('shaderSelect') as HTMLSelectElement;
   const resetBtn = document.getElementById('resetBtn') as HTMLButtonElement;
+
+  // Velocity control buttons
+  const velocityDown = document.getElementById('velocityDown') as HTMLButtonElement | null;
+  const velocityUp = document.getElementById('velocityUp') as HTMLButtonElement | null;
+  const velocityStepValue = document.getElementById('velocityStepValue') as HTMLSpanElement | null;
+  let velocityStep = 10;
+  if (velocityStepValue) velocityStepValue.textContent = velocityStep.toString();
+
+  function handleVelocity(factor: number) {
+    if (onVelocityScale) onVelocityScale(factor);
+  }
+
+  // Hold-to-repeat logic
+  function setupHoldButton(btn: HTMLButtonElement, factor: number) {
+    let interval: any;
+    let timeout: any;
+    btn.addEventListener('mousedown', () => {
+      handleVelocity(factor);
+      timeout = setTimeout(() => {
+        interval = setInterval(() => handleVelocity(factor), 100);
+      }, 300);
+    });
+    btn.addEventListener('mouseup', () => {
+      clearTimeout(timeout);
+      clearInterval(interval);
+    });
+    btn.addEventListener('mouseleave', () => {
+      clearTimeout(timeout);
+      clearInterval(interval);
+    });
+    btn.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      handleVelocity(factor);
+      timeout = setTimeout(() => {
+        interval = setInterval(() => handleVelocity(factor), 100);
+      }, 300);
+    });
+    btn.addEventListener('touchend', () => {
+      clearTimeout(timeout);
+      clearInterval(interval);
+    });
+  }
+  if (velocityDown) setupHoldButton(velocityDown, 0.9);
+  if (velocityUp) setupHoldButton(velocityUp, 1.1);
 
   pauseBtn.textContent = settings.paused ? 'Resume' : 'Pause';
   particleCountSlider.value = settings.particleCount.toString();

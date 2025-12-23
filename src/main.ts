@@ -1,6 +1,6 @@
 import { TIME_STEP } from './constants';
 import { createWorld, createBoundaries, stepWorld } from './physics';
-import { createParticles, setParticleRadius, getParticleNeighbors, applySoftRepulsion, getParticleEnergies, getParticleColorsByEnergy } from './particles';
+import { createParticles, setParticleRadius, getParticleNeighbors, applySoftRepulsion, getParticleEnergies, getParticleColorsByEnergy, scaleParticleVelocities } from './particles';
 import { resizeCanvasToDisplaySize } from './window';
 import { particleVertexShader, particleFragmentShaders } from './shaders';
 import { initWebGL, drawCircles } from './webgl';
@@ -59,7 +59,14 @@ function main() {
     (shader) => {
       webgl = initWebGL(canvas, particleVertexShader, particleFragmentShaders[shader]);
     },
-    settings
+    settings,
+    (factor) => {
+      // Scale all particle velocities by the given factor
+      // Clamp factor to avoid negative or zero
+      if (factor > 0 && particles.length > 0) {
+        scaleParticleVelocities(particles, factor);
+      }
+    }
   );
 
   function render() {
