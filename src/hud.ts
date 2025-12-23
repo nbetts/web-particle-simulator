@@ -110,6 +110,7 @@ export function setupHUD(
     repulsionRadiusValue.textContent = settings.repulsionRadius.toFixed(1);
     repulsionSpringSlider.value = settings.repulsionSpring.toString();
     repulsionSpringValue.textContent = settings.repulsionSpring.toFixed(1);
+    shaderSelect.value = settings.shader;
     saveSettings(settings);
     onParticleCount(settings.particleCount);
     onParticleSize(settings.particleSize);

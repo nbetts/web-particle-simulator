@@ -5,6 +5,7 @@ export type WebGLCircleProgram = {
   aPosition: number;
   uCenter: WebGLUniformLocation;
   uRadius: WebGLUniformLocation;
+  uQuadScale: WebGLUniformLocation;
   uResolution: WebGLUniformLocation;
   uColor: WebGLUniformLocation;
 };
@@ -57,6 +58,7 @@ export function initWebGL(canvas: HTMLCanvasElement, vsSource: string, fsSource:
     aPosition,
     uCenter: gl.getUniformLocation(program, 'uCenter')!,
     uRadius: gl.getUniformLocation(program, 'uRadius')!,
+    uQuadScale: gl.getUniformLocation(program, 'uQuadScale')!,
     uResolution: gl.getUniformLocation(program, 'uResolution')!,
     uColor: gl.getUniformLocation(program, 'uColor')!,
   };
@@ -68,7 +70,7 @@ export function drawCircles(
   width: number,
   height: number
 ) {
-  const { gl, program, uCenter, uRadius, uResolution, uColor } = webgl;
+  const { gl, program, uCenter, uRadius, uQuadScale, uResolution, uColor } = webgl;
   gl.viewport(0, 0, width, height);
   gl.clearColor(0, 0, 0, 1);
   gl.clear(gl.COLOR_BUFFER_BIT);
@@ -77,6 +79,7 @@ export function drawCircles(
   for (const c of circles) {
     gl.uniform2f(uCenter, c.x, c.y);
     gl.uniform1f(uRadius, c.radius);
+    gl.uniform1f(uQuadScale, 2.0);
     gl.uniform3fv(uColor, c.color);
     // Draw the quad (6 vertices)
     gl.drawArrays(gl.TRIANGLES, 0, 6);
